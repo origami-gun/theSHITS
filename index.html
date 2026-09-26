@@ -1750,6 +1750,54 @@
   }
   #plumberModalOverlay .modal-footer{justify-content:center;}
   #plumbSendBtn{min-width:240px;}
+
+  /* ---------- Categories dock (inventory) ---------- */
+  .scan-auto{font-style:normal; font-size:11px; color:var(--good); font-weight:700;}
+  .scan-need{font-style:normal; font-size:11px; color:var(--bad); font-weight:700;}
+  #scanCat.need{border-color:var(--bad); box-shadow:0 0 0 2px color-mix(in srgb, var(--bad) 25%, transparent);}
+  .scan-cat-hint{color:var(--bad) !important;}
+  .cat-legend{display:none !important;}
+  #invCategory{display:none !important;}
+  .inv-cats-btn{display:flex; align-items:center; gap:7px; height:40px; padding:0 12px; border-radius:10px; border:1px solid var(--line); background:var(--panel-bg); color:var(--ink); font-weight:600; font-size:13.5px; cursor:pointer;}
+  .inv-cats-btn .dots{display:flex; gap:2px;} .inv-cats-btn .dots i{width:7px; height:7px; border-radius:50%; background:#E53935;} .inv-cats-btn .dots i:nth-child(2){background:#43A047;} .inv-cats-btn .dots i:nth-child(3){background:#1E88E5;}
+  .inv-cats-btn b{min-width:19px; height:19px; padding:0 5px; border-radius:999px; background:var(--accent); color:#fff; font-size:11px; display:flex; align-items:center; justify-content:center;}
+  .inv-cats-btn b:empty{display:none;}
+  .inv-view.dock-open .inv-cats-btn{border-color:var(--accent); color:var(--accent-strong);}
+  .cat-dock{position:fixed; top:var(--header-h, 60px); right:0; bottom:0; width:290px; max-width:86vw; z-index:30; background:var(--panel-bg); border-left:1px solid var(--line); box-shadow:-10px 0 30px rgba(15,18,22,.12);
+    display:flex; flex-direction:column; gap:10px; padding:14px; transform:translateX(105%); transition:transform .24s var(--ease, ease); overflow:hidden;}
+  .inv-view.dock-open .cat-dock{transform:none;}
+  .cat-dock-head{display:flex; align-items:center; justify-content:space-between;}
+  .cat-dock-head h3{margin:0; font-size:18px; font-family:var(--font-display);}
+  .cat-viewall{width:100%; height:44px; font-size:15px;}
+  .cat-viewall[disabled]{opacity:.5;}
+  .cat-sort{display:grid; grid-template-columns:1fr 1fr; border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .cat-sort button{height:36px; border:none; background:var(--paper-alt); color:var(--ink-soft); font-weight:600; cursor:pointer;}
+  .cat-sort button.active{background:var(--ink); color:var(--paper);}
+  .cat-dock-hint{margin:0; font-size:12px; color:var(--ink-soft);}
+  .cat-dock-list{flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin:0 -4px; padding:0 4px 8px;}
+  .cat-dock-item{display:flex; align-items:center; gap:10px; min-height:46px; padding:0 12px; border-radius:10px; border:1px solid var(--line); background:var(--paper-alt); color:var(--ink); text-align:left; cursor:pointer; font-size:14.5px; touch-action:manipulation;}
+  .cat-dock-item .cat-dot{width:12px; height:12px; border-radius:50%; background:var(--cat); flex:0 0 auto;}
+  .cat-dock-item .nm{flex:1; min-width:0; font-weight:600;}
+  .cat-dock-item .n{font-family:var(--font-mono); font-size:12px; color:var(--ink-soft);}
+  .cat-dock-item .ck{width:22px; height:22px; border-radius:6px; border:1.5px solid var(--line); display:flex; align-items:center; justify-content:center; color:transparent; font-size:13px; font-weight:800; flex:0 0 auto;}
+  .cat-dock-item.on{border-color:var(--cat); background:color-mix(in srgb, var(--cat) 12%, var(--panel-bg));}
+  .cat-dock-item.on .ck{background:var(--cat); border-color:var(--cat); color:#fff;}
+  .cat-dock-edit{align-self:flex-start;}
+  .cat-dock-backdrop{display:none;}
+  @media (min-width:901px){ .inv-view.dock-open .inv-inner{margin-right:290px;} }
+  @media (max-width:900px){
+    .inv-view.dock-open .cat-dock-backdrop{display:block; position:fixed; inset:0; z-index:29; background:rgba(15,18,22,.35);}
+    .cat-dock{width:320px; padding-bottom:calc(14px + env(safe-area-inset-bottom));}
+    .inv-view.dock-open .cat-dock-backdrop{top:var(--header-h, 60px);}
+  }
+  @media (max-width:640px){
+    .inv-cats-btn{height:44px; font-size:14px; padding:0 10px;}
+    .inv-toolbar > .inv-cats-btn{order:2;}
+    .inv-toolbar > .inv-filters-btn{order:3;}
+    .inv-search{flex:1 1 100%; order:1;}
+    .inv-toolbar > .inv-cats-btn, .inv-toolbar > .inv-filters-btn{flex:1 1 0; justify-content:center;}
+    .inv-toolbar > select, .inv-toolbar > .inv-check, .inv-toolbar > #invCategoriesBtn{order:4;}
+  }
 </style>
 </head>
 <body>
@@ -2345,19 +2393,31 @@
           </div>
           <button type="button" class="inv-filters-btn" id="invFiltersBtn" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>Filters<b id="invFiltersN"></b></button>
           <select id="invRoom" aria-label="Filter by room"></select>
-          <select id="invCategory" aria-label="Filter by category"></select>
+          <select id="invCategory" aria-label="Filter by category" hidden></select>
+          <button type="button" class="inv-cats-btn" id="invCatsBtn" aria-controls="catDock" aria-expanded="false"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>Categories<b id="invCatsN"></b></button>
           <select id="invSort" aria-label="Sort">
             <option value="relevance">Best match</option><option value="name">Name</option><option value="location">Location</option>
             <option value="value">Value</option><option value="expiring">Expiring soonest</option><option value="updated">Recently changed</option>
           </select>
           <label class="inv-check"><input type="checkbox" id="invExpiring" /> Expiring soon</label>
-          <label class="inv-check"><input type="checkbox" id="invHideUsed" /> Hide used</label>
-          <button type="button" class="btn btn-ghost btn-sm" id="invCategoriesBtn">Categories…</button>
+          <label class="inv-check"><input type="checkbox" id="invHideUsed" checked /> Hide used</label>
+          <button type="button" class="btn btn-ghost btn-sm" id="invCategoriesBtn">Edit Categories</button>
         </div>
         <div class="cat-legend" id="invLegend" aria-label="Filter by category">
         </div>
         <div class="inv-list" id="invList" role="list"></div>
       </div>
+      <div class="cat-dock-backdrop" id="catDockBackdrop"></div>
+      <aside class="cat-dock" id="catDock" aria-label="Categories" aria-hidden="true">
+        <div class="cat-dock-head"><h3>Categories</h3><button type="button" class="icon-btn" id="catDockClose" aria-label="Close categories"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button></div>
+        <button type="button" class="btn btn-primary cat-viewall" id="catViewAll">View All</button>
+        <div class="cat-sort" role="radiogroup" aria-label="Sort categories">
+          <button type="button" data-csort="az" role="radio">A–Z</button><button type="button" data-csort="used" role="radio">Most used</button>
+        </div>
+        <p class="cat-dock-hint">Tap to filter. Pick as many as you like.</p>
+        <div class="cat-dock-list" id="catDockList" role="group" aria-label="Filter by category"></div>
+        <button type="button" class="btn btn-ghost btn-sm cat-dock-edit" id="catDockEdit">Edit Categories</button>
+      </aside>
     </section>
 
     <div class="shape-toolbar" id="shapeToolbar">
@@ -3141,7 +3201,7 @@
       'confirmMessage','confirmBtn','toastContainer','notifyBtn','bellDot','notifyModalOverlay',
       'notifyPermissionSection','ruleRows','addRuleBtn','rulesSaveBtn',
       'syncChip','syncLabel','syncModalOverlay','syncBody','floorPlanInput','fullscreenBtn','floorPlanImage','floorPlanPlaceholder',
-      'labelsGroup','patternDefs','patternsGroup','floorPlanInk','floorPlanLines','lineOverlayInput','invOpenBtn','invView','invToolbar','invSummary','invCloseBtn','invSearch','invRoom','invCategory','invSort','invExpiring','invList',
+      'labelsGroup','patternDefs','patternsGroup','floorPlanInk','floorPlanLines','lineOverlayInput','invOpenBtn','invView','invToolbar','invCatsBtn','invSummary','invCloseBtn','invSearch','invRoom','invCategory','invSort','invExpiring','invList',
       'patternPicker','patternStrength','patternStrengthOut','patternStrengthRow'];
     ids.forEach(function(id){ els[id] = document.getElementById(id); });
   }
@@ -4184,9 +4244,35 @@
       els.invView.scrollTop = 0;
     }
     els.invToolbar.classList.remove('filters-open');
+    var dockPref = null; try { dockPref = localStorage.getItem('shits.catDock'); } catch(e){}
+    setCatDock(!window.matchMedia('(max-width: 900px)').matches && dockPref !== '0');
     els.invCloseBtn.textContent = inv.fromQuick ? '‹ Back' : 'Back to map';
   }
   function isTouchUI(){ try { return window.matchMedia('(pointer: coarse)').matches && window.matchMedia('(hover: none)').matches; } catch(e){ return false; } }
+  function setCatDock(open){
+    els.invView.classList.toggle('dock-open', !!open);
+    document.getElementById('catDock').setAttribute('aria-hidden', open ? 'false' : 'true');
+    els.invCatsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    try { localStorage.setItem('shits.catDock', open ? '1' : '0'); } catch(e){}
+    if (open) renderCatDock();
+  }
+  function renderCatDock(){
+    var list = document.getElementById('catDockList'); if (!list || !inv.open) return;
+    var counts = {}, names = categoryNames().slice();
+    state.items.forEach(function(i){
+      if (i.deleted) return;
+      var c = i.category || CATEGORY_FALLBACK; counts[c] = (counts[c] || 0) + 1;
+      if (names.indexOf(c) === -1) names.push(c);
+    });
+    names = inv.catSort === 'used' ? names.sort(function(a, b){ return (counts[b] || 0) - (counts[a] || 0) || a.localeCompare(b); }) : sortNames(names);
+    [].forEach.call(document.querySelectorAll('[data-csort]'), function(b){ var on = b.getAttribute('data-csort') === (inv.catSort || 'az'); b.classList.toggle('active', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); });
+    list.innerHTML = names.map(function(c){
+      var on = inv.cats.indexOf(c) !== -1;
+      return '<button type="button" class="cat-dock-item' + (on ? ' on' : '') + '" data-cat="' + escapeHtml(c) + '" aria-pressed="' + on + '" style="--cat:' + categoryColor(c) + '">' +
+        '<span class="cat-dot"></span><span class="nm">' + escapeHtml(c) + '</span><span class="n">' + (counts[c] || 0) + '</span><span class="ck" aria-hidden="true">✓</span></button>';
+    }).join('');
+    document.getElementById('catViewAll').disabled = !inv.cats.length && !els.invSearch.value && !els.invRoom.value && !els.invExpiring.checked && els.invHideUsed.checked;
+  }
   function closeInventoryView(){
     inv.open = false;
     els.expiringBanner.classList.remove('hide-in-exp');
@@ -4253,15 +4339,17 @@
     var head = els.invView.querySelector('.inv-head h2');
     if (head) head.textContent = els.invExpiring.checked ? 'Expiring soon' : 'Inventory';
     els.expiringBanner.classList.toggle('hide-in-exp', els.invExpiring.checked);
-    var nf = (els.invRoom.value ? 1 : 0) + (els.invCategory.value ? 1 : 0) + (els.invExpiring.checked ? 1 : 0) + (els.invHideUsed.checked ? 1 : 0);
+    var nf = (els.invRoom.value ? 1 : 0) + (els.invExpiring.checked ? 1 : 0);
+    var cn = document.getElementById('invCatsN'); if (cn) cn.textContent = inv.cats.length ? inv.cats.length : '';
+    renderCatDock();
     var fb = document.getElementById('invFiltersN'); if (fb) fb.textContent = nf ? nf : '';
     var q = els.invSearch.value.trim(), pq = prepareQuery(q);
-    var roomF = els.invRoom.value, catF = els.invCategory.value, expOnly = els.invExpiring.checked, hideUsed = els.invHideUsed.checked, sort = els.invSort.value;
+    var roomF = els.invRoom.value, catF = inv.cats, expOnly = els.invExpiring.checked, hideUsed = els.invHideUsed.checked, sort = els.invSort.value;
     var rows = state.items.map(function(it){ return {item: it, score: pq.tokens.length ? itemSearchScore(it, pq) : 1}; })
       .filter(function(r){
         if (r.score <= 0) return false;
         if (roomF){ var p = itemPlace(r.item); if (!p.room || p.room.id !== roomF) return false; }
-        if (catF && (r.item.category || 'Other') !== catF) return false;
+        if (catF.length && catF.indexOf(r.item.category || CATEGORY_FALLBACK) === -1) return false;
         if (expOnly && getItemExpiryStatus(r.item) === null) return false;
         if (hideUsed && r.item.usedAt) return false;
         return true;
@@ -4311,7 +4399,8 @@
   }
   function bindInventoryView(){
     els.invOpenBtn.addEventListener('click', function(){
-      if (inv.open) closeInventoryView(); else openInventoryView({query: els.searchInput.value});
+      if (inv.open && !els.invExpiring.checked) return;          /* already there */
+      openInventoryView({query: inv.open ? '' : els.searchInput.value, expiring: false, sort: 'name'});
     });
     document.getElementById('invFiltersBtn').addEventListener('click', function(){
       var open = els.invToolbar.classList.toggle('filters-open');
@@ -4329,10 +4418,30 @@
       clearTimeout(debounce); debounce = setTimeout(function(){ inv.expandedId = null; renderInventoryView(); }, 120);
     });
     [els.invRoom, els.invCategory, els.invSort, els.invExpiring, els.invHideUsed].forEach(function(el){ el.addEventListener('change', renderInventoryView); });
+    els.invCatsBtn.addEventListener('click', function(){ setCatDock(!els.invView.classList.contains('dock-open')); });
+    document.getElementById('catDockClose').addEventListener('click', function(){ setCatDock(false); });
+    document.getElementById('catDockBackdrop').addEventListener('click', function(){ setCatDock(false); });
+    document.getElementById('catDockEdit').addEventListener('click', function(){ els.invCategoriesBtn.click(); });
+    document.getElementById('catViewAll').addEventListener('click', function(){
+      inv.cats = []; els.invSearch.value = ''; els.invRoom.value = ''; els.invExpiring.checked = false; els.invHideUsed.checked = true;
+      renderInventoryView(); updateChrome();
+      if (window.matchMedia('(max-width: 900px)').matches) setCatDock(false);
+    });
+    document.querySelector('.cat-sort').addEventListener('click', function(e){
+      var b = e.target.closest('[data-csort]'); if (!b) return;
+      inv.catSort = b.getAttribute('data-csort'); try { localStorage.setItem('shits.catSort', inv.catSort); } catch(err){}
+      renderCatDock();
+    });
+    document.getElementById('catDockList').addEventListener('click', function(e){
+      var b = e.target.closest('[data-cat]'); if (!b) return;
+      var c = b.getAttribute('data-cat'), i = inv.cats.indexOf(c);
+      if (i === -1) inv.cats.push(c); else inv.cats.splice(i, 1);
+      renderInventoryView();
+    });
     els.invLegend.addEventListener('click', function(e){
       var chip = e.target.closest('[data-cat]'); if (!chip) return;
       var c = chip.getAttribute('data-cat');
-      els.invCategory.value = els.invCategory.value === c ? '' : c;
+      var ci = inv.cats.indexOf(c); if (ci === -1) inv.cats.push(c); else inv.cats.splice(ci, 1);
       renderInventoryView();
     });
     els.invCategoriesBtn.addEventListener('click', openCategoriesModal);
@@ -7582,6 +7691,7 @@
     return Number(it.quantity) || 1;
   }
   var quick = {open:false, roomId:null, storageId:'', binId:'', query:''};
+  inv.cats = []; try { inv.catSort = localStorage.getItem('shits.catSort') || 'az'; } catch(e){ inv.catSort = 'az'; }
   function quickRoomItems(roomId){ return itemsIn(getLocation(roomId)); }
   function isPhoneLike(){
     try { return window.matchMedia('(max-width: 700px) and (pointer: coarse)').matches; } catch(e){ return false; }
@@ -8122,7 +8232,7 @@
     if (!name) return null;
     return {name: name.length > 80 ? name.slice(0, 80) : name, brand: brand, size: String(p.quantity || '').trim(),
             units: unitsFromProduct(p), image: p.image_front_url || p.image_front_small_url || '',
-            tags: p.categories_tags || [], food: /food/.test(host)};
+            tags: p.categories_tags || [], food: /openfoodfacts/.test(host), beauty: /beauty/.test(host), pet: /petfood/.test(host)};
   }
   /* How many units one scan adds: a dozen eggs = 12, a 6-pack = 6, a gallon of milk = 1. */
   function unitsFromProduct(p){
@@ -8137,12 +8247,50 @@
     if (q && !unit && /en:eggs/.test((p.categories_tags || []).join(' '))) return clampU(q);
     return 1;
   }
-  function guessCategory(prod){
-    var tags = (prod && prod.tags || []).join(' ');
-    var pick = function(list){ for (var i = 0; i < list.length; i++){ var c = findCategory(list[i]); if (c) return c.name; } return null; };
-    if (/en:(eggs|dairies|milks|cheeses|yogurts|meats|poultry|fishes|seafood|fresh|breads|fruits|vegetables|salads|refrigerated)/.test(tags)) return pick(['Perishable', 'Pantry & Food', 'Pantry']);
-    if (prod && prod.food) return pick(['Pantry & Food', 'Pantry', 'Food']);
-    if (prod) return pick(['Household', 'Cleaning Supplies', 'Cleaning']);
+  /* Pick the most logical category for a scanned product.
+     1) Learn from you: items you've scanned before keep their product tags (saved with the item,
+        so in backups and Drive too). A new product sharing specific tags or name words with them
+        gets the same category you chose.
+     2) Otherwise, rules on the product's database tags and name, mapped onto YOUR category list.
+     3) Nothing confident → null, and the scan card asks you to pick. */
+  var CATEGORY_RULES = [
+    {re: /en:frozen|\bfrozen\b/, cats: ['Frozen', 'Freezer', 'Perishable']},
+    {re: /en:(eggs|dairies|milks|cheeses|yogh?urts|creams|butters|meats|poultry|chickens|beef|pork|sausages|hams|fishes|seafood|fresh|salads|fruits|vegetables|refrigerated|hummus|dips|salsas|tofu|fresh-pasta|breads|tortillas|juices)|\b(milk|eggs?|cheese|yogh?urt|butter|cream|chicken|beef|pork|turkey|bacon|salmon|shrimp|lettuce|spinach|salad|berries|hummus|tofu|tortillas?|bread|juice|kefir)\b/, cats: ['Perishable', 'Refrigerated', 'Fridge', 'Pantry & Food', 'Food']},
+    {re: /en:(pet-food|dog-food|cat-food)|\b(dog|cat|pet) (food|treats?)\b|\bkibble\b/, cats: ['Pet Supplies', 'Pets', 'Pet', 'Pantry & Food']},
+    {re: /en:(snacks|cereals|pastas|rices|canned|sauces|condiments|spreads|sweeteners|beverages|coffees|teas|flours|oils|spices|chips|cookies|crackers|nuts|chocolates|candies|soups|baking|breakfasts|plant-based-foods)|\b(chips|cereal|pasta|rice|beans|soup|sauce|coffee|tea|crackers|cookies|nuts|granola|flour|sugar|oil|vinegar|spice|seasoning|salsa|peanut butter|jam|honey|soda|water)\b/, cats: ['Pantry & Food', 'Pantry', 'Food', 'Groceries', 'Kitchen']},
+    {re: /\b(detergent|bleach|cleaner|disinfect|dish ?soap|dishwasher|sponges?|wipes|laundry|fabric softener|scrub|mop|trash bags?|garbage bags?)\b/, cats: ['Cleaning Supplies', 'Cleaning', 'Household']},
+    {re: /\b(toilet paper|paper towels?|tissues?|napkins|aluminum foil|plastic wrap|zip(per)? ?bags?|light ?bulbs?)\b/, cats: ['Household', 'Household Supplies', 'Cleaning Supplies']},
+    {re: /\b(shampoo|conditioner|toothpaste|toothbrush|deodorant|lotion|sunscreen|razor|body wash|soap bar|mouthwash|floss|makeup|cosmetic)\b|beauty/, cats: ['Personal Care', 'Health & Beauty', 'Toiletries', 'Bathroom', 'Household']},
+    {re: /\b(ibuprofen|acetaminophen|aspirin|vitamins?|supplements?|allergy|antacid|bandages?|first aid|cough|medicine|tablets|capsules)\b/, cats: ['Medicine', 'Health', 'First Aid', 'Personal Care', 'Household']},
+    {re: /\b(batter(y|ies)|charger|cable|usb|hdmi|headphones|remote)\b/, cats: ['Electronics']},
+    {re: /\b(screws?|nails|drill|wrench|hammer|tape measure|glue|wd-?40|duct tape|sandpaper)\b/, cats: ['Hardware', 'Tools']},
+    {re: /\b(fertilizer|potting|seeds|mulch|weed|garden|hose)\b/, cats: ['Garden & Yard', 'Garden']},
+    {re: /\b(motor oil|antifreeze|windshield|wiper)\b/, cats: ['Automotive']}
+  ];
+  function nameWords(n){ return normText(n).split(' ').filter(function(w){ return w.length > 3 && !/^(with|from|free|organic|natural|original|classic|fresh|style|flavor|flavored|trader|joes|great|value|brand|pack)$/.test(w); }); }
+  function learnedCategory(prod, name){
+    var tags = (prod && prod.tags || []).filter(function(t){ return !/^en:(foods?|plant-based-foods-and-beverages|beverages-and-beverages-preparations|snacks|groceries|undefined)$/.test(t); });
+    var words = nameWords(name || (prod && prod.name) || ''), votes = {};
+    state.items.forEach(function(it){
+      if (it.deleted || !it.category) return;
+      var score = 0;
+      if (tags.length && it.productTags) it.productTags.forEach(function(t){ if (tags.indexOf(t) !== -1) score += 2; });
+      if (words.length){ var iw = nameWords(it.name); words.forEach(function(w){ if (iw.indexOf(w) !== -1) score += 1; }); }
+      if (score >= 2) votes[it.category] = (votes[it.category] || 0) + score;
+    });
+    var best = null; Object.keys(votes).forEach(function(c){ if (!best || votes[c] > votes[best]) best = c; });
+    return best && findCategory(best) ? findCategory(best).name : null;
+  }
+  function guessCategory(prod, typedName){
+    var learned = learnedCategory(prod, typedName); if (learned) return learned;
+    var hay = ((prod && prod.tags || []).join(' ') + ' ' + normText(typedName || (prod && prod.name) || '') + ' ' + normText(prod && prod.brand || '')).toLowerCase();
+    if (prod && prod.beauty) hay += ' beauty';
+    for (var i = 0; i < CATEGORY_RULES.length; i++){
+      if (!CATEGORY_RULES[i].re.test(hay)) continue;
+      for (var j = 0; j < CATEGORY_RULES[i].cats.length; j++){ var c = findCategory(CATEGORY_RULES[i].cats[j]); if (c) return c.name; }
+    }
+    if (prod && prod.pet){ var pc = findCategory('Pet Supplies') || findCategory('Pets'); if (pc) return pc.name; }
+    if (prod && prod.food && prod.tags && prod.tags.length){ var f = findCategory('Pantry & Food') || findCategory('Pantry') || findCategory('Food'); if (f) return f.name; }
     return null;
   }
   function productPhoto(prod){
@@ -8523,6 +8671,7 @@
     if (!exp){ var life = shelfLifeOf(item); if (life){ exp = addDaysStr(life); expSrc = 'estimate'; } }
     if (!exp && prod){ var g = shelfGuess(prod); if (g){ exp = addDaysStr(g); expSrc = 'guess'; } }
     var extra = {barcode: ctx.code};
+    if (prod && prod.tags && prod.tags.length && !item.productTags) extra.productTags = prod.tags.slice(-8);
     if (ctx.gs1.exp && daysFromToday(ctx.gs1.exp) > 0) extra.shelfLifeDays = daysFromToday(ctx.gs1.exp);
     scanRestock(item, units, exp, extra).then(function(r){
       ctx.rec = r.rec; ctx.before = r.before; ctx.units = units; ctx.expSrc = expSrc;
@@ -8566,7 +8715,8 @@
       showScanCard('<div class="scan-title">Add a room first</div><p class="scan-note">Name at least one room on the map in the full app, then scan again.</p><div class="scan-actions"><button type="button" class="btn btn-primary" data-scan-act="close">OK</button></div>');
       return;
     }
-    var names = categoryNames(), cat = guessCategory(prod) || (lastUsedCategory && names.indexOf(lastUsedCategory) !== -1 ? lastUsedCategory : (names.indexOf(CATEGORY_FALLBACK) !== -1 ? CATEGORY_FALLBACK : names[0]));
+    var names = categoryNames(), cat = guessCategory(prod);
+    ctx.catGuessed = !!cat;
     var where = defaultSpot(spots), units = prod ? prod.units : 1;
     var guess = ctx.gs1.exp ? 0 : shelfGuess(prod), newExp = ctx.gs1.exp || (guess ? addDaysStr(guess) : '');
     showScanCard('<div class="scan-head">' + thumb(prod && prod.image) + '<div><div class="scan-title">' + (prod ? 'New item' : 'Not in the product database') + '</div><div class="scan-sub">' +
@@ -8574,7 +8724,8 @@
       '<input type="text" class="qv-in" id="scanName" maxlength="80" placeholder="What is it? e.g. Milk" value="' + escapeHtml(prod ? prod.name : '') + '" aria-label="Item name" />' +
       '<div class="qv-add-grid">' +
         '<label class="span-2" style="grid-column:1/-1">Where<select id="scanWhere" class="qv-in">' + spots.map(function(sp){ return '<option value="' + sp.id + '"' + (sp.id === where ? ' selected' : '') + '>' + escapeHtml(sp.label) + '</option>'; }).join('') + '</select></label>' +
-        '<label>Category<select id="scanCat" class="qv-in">' + names.map(function(c){ return '<option' + (c === cat ? ' selected' : '') + '>' + escapeHtml(c) + '</option>'; }).join('') + '</select></label>' +
+        '<label>Category' + (cat ? ' <em class="scan-auto">auto</em>' : ' <em class="scan-need">pick one</em>') + '<select id="scanCat" class="qv-in' + (cat ? '' : ' need') + '">' + (cat ? '' : '<option value="" selected disabled>Choose…</option>') +
+          names.map(function(c){ return '<option' + (c === cat ? ' selected' : '') + '>' + escapeHtml(c) + '</option>'; }).join('') + '</select></label>' +
         '<label>Units per scan<span class="qv-stepper"><button type="button" data-scan-act="nunits" data-d="-1" aria-label="One less">−</button><input type="number" id="scanNewUnits" inputmode="numeric" min="1" max="200" value="' + units + '" aria-label="Units" /><button type="button" data-scan-act="nunits" data-d="1" aria-label="One more">+</button></span></label>' +
         '<label style="grid-column:1/-1">Expires<span class="scan-exp"><input type="date" id="scanNewExp" class="qv-in" value="' + escapeHtml(newExp) + '" /><button type="button" class="scan-read" data-scan-act="readdate" data-for="scanNewExp">📷 Read date</button></span></label>' +
       '</div>' +
@@ -8582,12 +8733,18 @@
       (prod && prod.image ? '<label class="scan-photo-opt"><input type="checkbox" id="scanUsePhoto" checked /> Use the product photo</label>' : '') +
       '<div class="scan-actions"><button type="button" class="btn btn-ghost" data-scan-act="next">Cancel</button><button type="button" class="btn btn-primary" data-scan-act="add">Add item</button></div>');
     if (!prod) setTimeout(function(){ var i = scanEl('scanName'); if (i) i.focus(); }, 60);
+    if (!cat){
+      var hint = document.createElement('p'); hint.className = 'scan-note scan-cat-hint';
+      hint.textContent = 'Couldn’t tell which category this belongs in. Pick one. It’s saved with the item (and in your backups), so similar products get it automatically next time.';
+      var grid = scanEl('scanCard').querySelector('.qv-add-grid'); if (grid) grid.parentNode.insertBefore(hint, grid.nextSibling);
+    }
   }
   function addScannedItem(){
     var ctx = scan.ctx, prod = ctx.product;
     var name = scanEl('scanName').value.trim();
     if (!name){ toast('Type what it is', 'error'); scanEl('scanName').focus(); return; }
     var where = scanEl('scanWhere').value, category = scanEl('scanCat').value;
+    if (!category){ toast('Pick a category for this item', 'error'); scanEl('scanCat').focus(); scanEl('scanCat').classList.add('need'); return; }
     var units = Math.max(1, Math.min(200, parseInt(scanEl('scanNewUnits').value, 10) || 1));
     var exp = scanEl('scanNewExp').value || null;
     var usePhoto = scanEl('scanUsePhoto') && scanEl('scanUsePhoto').checked;
@@ -8595,7 +8752,9 @@
     (usePhoto ? productPhoto(prod) : Promise.resolve(null)).then(function(photo){
       var rec = {id: uid(), locationId: where, name: name, category: category, quantity: units, value: null, subLocation: '',
                  purchaseDate: localDateStr(), expirationDate: exp, notes: prod ? [prod.brand, prod.size].filter(Boolean).join(' · ') : '',
-                 photo: photo, createdAt: Date.now(), barcode: ctx.code, scanUnits: units};
+                 photo: photo, createdAt: Date.now(), barcode: ctx.code, scanUnits: units,
+                 productTags: prod && prod.tags ? prod.tags.slice(-8) : undefined};
+      if (!rec.productTags) delete rec.productTags;
       if (exp && daysFromToday(exp) > 0) rec.shelfLifeDays = daysFromToday(exp);
       lastUsedCategory = category; ensureCategories([category]);
       try { localStorage.setItem('shits.scanWhere', where); } catch(e){}
@@ -8650,6 +8809,14 @@
         scanSave(rec).then(function(){ ctx.rec = rec; if (ctx.expSrc !== 'ocr') ctx.expSrc = v ? 'you' : ''; });
       } else if (e.target.id === 'scanUnitsIn') setScanUnits(parseInt(e.target.value, 10));
     });
+    card.addEventListener('input', function(e){
+      if (e.target.id !== 'scanName' || !scan.ctx || scan.ctx.catTouched) return;
+      var g = guessCategory(scan.ctx.product, e.target.value), sel = scanEl('scanCat');
+      if (g && sel && sel.value !== g){ sel.value = g; sel.classList.remove('need'); }
+    });
+    card.addEventListener('change', function(e){
+      if (e.target.id === 'scanCat' && scan.ctx){ scan.ctx.catTouched = true; e.target.classList.remove('need'); }
+    }, true);
     card.addEventListener('keydown', function(e){
       if (e.key !== 'Enter') return;
       if (e.target.id === 'scanTyped'){ e.preventDefault(); card.querySelector('[data-scan-act="lookup"]').click(); }
